@@ -1,8 +1,8 @@
 import csv, sqlite3, json, os, sys
 
 #Constants for easy running
-IN_DB = r'/Users/jame6423/Documents/Survey123/Utilities/ExtractFromDevice/ArcGIS/My Surveys/Databases/a084e65cd9403d813e8ec667ca329a63.sqlite'
-OUT_DIR = r'/Users/jame6423/Documents/Survey123/Utilities/ExtractFromDevice/outSurveys'
+IN_DB = r'./Demo/ArcGIS/My Surveys/Databases/a084e65cd9403d813e8ec667ca329a63.sqlite'
+OUT_DIR = r'./Demo/outSurveys'
 
 def readS123db(inDB=IN_DB):
     conn = sqlite3.connect(inDB)
