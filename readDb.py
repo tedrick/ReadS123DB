@@ -39,12 +39,18 @@ def readS123db(inDB=IN_DB):
                         outRow[jAtt["fieldName"]] = jAtt["fileName"]
             surveys[surveyName]["adds"].append(outRow)
         if "updates" in jTransaction.keys():
-            jUpdates = jTransaction["updates"][0]
+            jRow = jTransaction["updates"][0]
             outRow = jRow["attributes"]
             #Add Geometry
             outRow[u"x_geometry"] = jRow["geometry"]["x"]
             outRow[u"y_geometry"] = jRow["geometry"]["y"]
             outRow[u"z_geometry"] = jRow["geometry"]["z"]
+            if "attachments" in jTransaction:
+                jAttach = jTransaction["attachments"]
+                for jAttRow in jAttach:
+                    for jAtt in jAttRow:
+                        outRow[jAtt["fieldName"]] = jAtt["fileName"]
+            surveys[surveyName]["adds"].append(outRow)
         #print(outRow)
     return surveys
 
