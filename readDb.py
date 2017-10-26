@@ -48,8 +48,9 @@ def readS123db(inDB=IN_DB):
             if "attachments" in jTransaction:
                 jAttach = jTransaction["attachments"]
                 for jAttRow in jAttach:
-                    for jAtt in jAttRow:
-                        outRow[jAtt["fieldName"]] = jAtt["fileName"]
+                    if jAttRow != None:
+                        for jAtt in jAttRow:
+                            outRow[jAtt["fieldName"]] = jAtt["fileName"]
             surveys[surveyName]["adds"].append(outRow)
         #print(outRow)
     return surveys
