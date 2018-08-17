@@ -1,3 +1,10 @@
+'''readDb.py - A script to read teh Survey123 database and export the records as CSV files
+Usage: python readDb.py [input sqlite file] [directory to write the CSV files to]
+
+Built-in globals will set the parameters to: 
+- the Survey123 DB copied into the same directory as where this script is run 
+- a directory called 'out' where this script is run
+'''
 import csv, sqlite3, json, os, sys, uuid
 
 #Constants for easy running
