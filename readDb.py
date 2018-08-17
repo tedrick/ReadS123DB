@@ -1,13 +1,55 @@
-import csv, sqlite3, json, os, sys
+import csv, sqlite3, json, os, sys, uuid
 
 #Constants for easy running
 IN_DB = r'./a084e65cd9403d813e8ec667ca329a63.sqlite'
 OUT_DIR = r'./out'
 
+
+def read_data(indata, parentglobalid=""):
+    # Dedicated function to read data.
+    outData = []
+    for parentTable, parentValuesDict in indata.iteritems():
+        print parentTable
+        print parentValuesDict
+        outFeature = {"editMode": 0, "table": parentTable, "data":{}}
+        globalIDfield = "globalid"
+        if "__meta__" in parentValuesDict:
+            globalIDfield = parentValuesDict["__meta__"]["globalIdField"]
+            outFeature["editMode"] = parentValuesDict["__meta__"]["editMode"]
+        identifier = ""
+        if globalIDfield in parentValuesDict.keys():
+            identifier = parentValuesDict[globalIDfield]
+        else:
+            identifier = str(uuid.uuid4())
+            outFeature["data"][globalIDfield] = identifier
+        if parentglobalid != "":
+            outFeature["data"]["parentglobalid"] = parentglobalid
+        for fieldName, fieldValue in parentValuesDict.iteritems():
+            #Test the key to see if it's a normal attribute, geometry (dict), repeat (list), or metadata (dict)
+            if isinstance(fieldValue, dict):
+                # process geometry
+                if "spatialReference" in fieldValue.keys():
+                    if fieldValue["type"] == "point":
+                        outFeature["data"][u"x_geometry"] = fieldValue["x"]
+                        outFeature["data"][u"y_geometry"] = fieldValue["y"]
+                        if ["z"] in fieldValue.keys():
+                            outFeature["data"][u"z_geometry"] = fieldValue["z"]
+            elif isinstance(fieldValue, list):
+                #Repeat - iterate through the repeats to generate their own records
+                for record in fieldValue:
+                    repeat_record = read_data({"{0}_{1}".format(parentTable, fieldName): record}, identifier)
+                    outData.extend(repeat_record)
+            else:
+                outFeature["data"][fieldName] = fieldValue
+        outData.append(outFeature)
+    return outData
+
+
 def readS123db(inDB=IN_DB):
     conn = sqlite3.connect(inDB)
     cur = conn.cursor()
-    surveys = {}
+    surveys = []
+    outTables = {}
     #conn.text_factory = lambda x: x.decode("utf-16")
     #Status indicates which 'box' teh Survey is in
     #0 - Drafts
@@ -15,46 +57,22 @@ def readS123db(inDB=IN_DB):
     #2 - Sent
     #3 - Submission Error
     #4 - Inbox
-    for row in cur.execute('SELECT name, feature, status from Surveys where status = 1 or status = 3'):
-        print(row)
+    for row in cur.execute('SELECT name, data, status from Surveys where status = 1 or status = 3'):
+        ##print(row)
         print ('-----------------')
         surveyName = row[0]
-        if surveyName not in surveys.keys():
-            surveys[surveyName] = {"adds":[], "updates":[]}
-        jTransaction = json.loads(json.loads(row[1]))[0]
-        print(jTransaction)
-        #Case for Adds
-        if "adds" in jTransaction.keys():
-            jRow = jTransaction["adds"][0]
-            outRow = jRow["attributes"]
-            #Add Geometry
-            outRow[u"x_geometry"] = jRow["geometry"]["x"]
-            outRow[u"y_geometry"] = jRow["geometry"]["y"]
-            outRow[u"z_geometry"] = jRow["geometry"]["z"]
-            #Add Attachments
-            if "attachments" in jTransaction:
-                jAttach = jTransaction["attachments"]
-                for jAttRow in jAttach:
-                    if jAttRow != None:
-                        for jAtt in jAttRow:
-                            outRow[jAtt["fieldName"]] = jAtt["fileName"]
-            surveys[surveyName]["adds"].append(outRow)
-        if "updates" in jTransaction.keys():
-            jRow = jTransaction["updates"][0]
-            outRow = jRow["attributes"]
-            #Add Geometry
-            outRow[u"x_geometry"] = jRow["geometry"]["x"]
-            outRow[u"y_geometry"] = jRow["geometry"]["y"]
-            outRow[u"z_geometry"] = jRow["geometry"]["z"]
-            if "attachments" in jTransaction:
-                jAttach = jTransaction["attachments"]
-                for jAttRow in jAttach:
-                    if jAttRow != None:
-                        for jAtt in jAttRow:
-                            outRow[jAtt["fieldName"]] = jAtt["fileName"]
-            surveys[surveyName]["adds"].append(outRow)
-        #print(outRow)
-    return surveys
+        jFeature = json.loads(row[1])
+        ##print jFeature
+        features = read_data(jFeature)
+        surveys.extend(features)
+    for feature in surveys:
+        if not feature["table"] in outTables:
+            outTables[feature["table"]] = {"adds":[], "updates":[]}
+        if feature["editMode"] == 0:
+            outTables[feature["table"]]["adds"].append(feature["data"])
+        elif feature["editMode"] == 1:
+            outTables[feature["table"]]["updates"].append(feature["data"])
+    return outTables
 
 def writeCSV(surveys, outDir = OUT_DIR):
     import csv
