@@ -32,7 +32,7 @@ def read_data(indata, parentglobalid=""):
         if parentglobalid != "":
             outFeature["data"]["parentglobalid"] = parentglobalid
         for fieldName, fieldValue in parentValuesDict.iteritems():
-            #Test the key to see if it's a normal attribute, geometry (dict), repeat (list), or metadata (dict)
+            #Test the key to see if it's a normal attribute, select_multiple (list), geometry (dict), repeat (list), or metadata (dict)
             if isinstance(fieldValue, dict):
                 # process geometry
                 if "spatialReference" in fieldValue.keys() and "type" in fieldValue.keys():
@@ -43,9 +43,13 @@ def read_data(indata, parentglobalid=""):
                             outFeature["data"][u"z_geometry"] = fieldValue["z"]
             elif isinstance(fieldValue, list):
                 #Repeat - iterate through the repeats to generate their own records
-                for record in fieldValue:
-                    repeat_record = read_data({"{0}_{1}".format(parentTable, fieldName): record}, identifier)
-                    outData.extend(repeat_record)
+                if isinstance(fieldValue[0], dict):
+                    for record in fieldValue:
+                        repeat_record = read_data({"{0}_{1}".format(parentTable, fieldName): record}, identifier)
+                        outData.extend(repeat_record)
+                else:
+                    #Select_multiple - other item types; change to comma seperated list
+                    outFeature["data"][fieldName] = ",".join(fieldValue)
             else:
                 outFeature["data"][fieldName] = fieldValue
         outData.append(outFeature)
