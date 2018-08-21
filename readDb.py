@@ -41,7 +41,7 @@ def read_data(indata, parentglobalid=""):
                         outFeature["data"][u"y_geometry"] = fieldValue["y"]
                         if ["z"] in fieldValue.keys():
                             outFeature["data"][u"z_geometry"] = fieldValue["z"]
-            elif isinstance(fieldValue, list):
+            elif isinstance(fieldValue, list) and len(fieldValue) > 0:
                 #Repeat - iterate through the repeats to generate their own records
                 if isinstance(fieldValue[0], dict):
                     for record in fieldValue:
