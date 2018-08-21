@@ -35,7 +35,7 @@ def read_data(indata, parentglobalid=""):
             #Test the key to see if it's a normal attribute, geometry (dict), repeat (list), or metadata (dict)
             if isinstance(fieldValue, dict):
                 # process geometry
-                if "spatialReference" in fieldValue.keys():
+                if "spatialReference" in fieldValue.keys() and "type" in fieldValue.keys():
                     if fieldValue["type"] == "point":
                         outFeature["data"][u"x_geometry"] = fieldValue["x"]
                         outFeature["data"][u"y_geometry"] = fieldValue["y"]
