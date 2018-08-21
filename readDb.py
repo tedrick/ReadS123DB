@@ -127,6 +127,6 @@ if __name__ == '__main__':
     outDir = OUT_DIR
     if len(sys.argv) > 1:
         inDB = sys.argv[1]
-        outDirectory = sys.argv[2]
+        outDir = sys.argv[2]
     surveys = readS123db(inDB)
     writeCSV(surveys, outDir)
