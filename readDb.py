@@ -15,9 +15,9 @@ OUT_DIR = r'./out'
 def read_data(indata, parentglobalid=""):
     # Dedicated function to read data.
     outData = []
-    for parentTable, parentValuesDict in indata.iteritems():
-        print parentTable
-        print parentValuesDict
+    for parentTable, parentValuesDict in indata.items():
+        print(parentTable)
+        print(parentValuesDict)
         outFeature = {"editMode": 0, "table": parentTable, "data":{}}
         globalIDfield = "globalid"
         if "__meta__" in parentValuesDict:
@@ -31,7 +31,7 @@ def read_data(indata, parentglobalid=""):
             outFeature["data"][globalIDfield] = identifier
         if parentglobalid != "":
             outFeature["data"]["parentglobalid"] = parentglobalid
-        for fieldName, fieldValue in parentValuesDict.iteritems():
+        for fieldName, fieldValue in parentValuesDict.items():
             #Test the key to see if it's a normal attribute, select_multiple (list), geometry (dict), repeat (list), or metadata (dict)
             if isinstance(fieldValue, dict):
                 # process geometry
@@ -39,7 +39,7 @@ def read_data(indata, parentglobalid=""):
                     if fieldValue["type"] == "point":
                         outFeature["data"][u"x_geometry"] = fieldValue["x"]
                         outFeature["data"][u"y_geometry"] = fieldValue["y"]
-                        if ["z"] in fieldValue.keys():
+                        if "z" in fieldValue.keys():
                             outFeature["data"][u"z_geometry"] = fieldValue["z"]
             elif isinstance(fieldValue, list) and len(fieldValue) > 0:
                 #Repeat - iterate through the repeats to generate their own records
