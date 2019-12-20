@@ -11,6 +11,31 @@ import csv, sqlite3, json, os, sys, uuid
 IN_DB = r'./a084e65cd9403d813e8ec667ca329a63.sqlite'
 OUT_DIR = r'./out'
 
+def shape2WKT(in_shape_data):
+    # Read coordinates and return WKT
+    out_text = ""
+    if "rings" in in_shape_data:
+        #Polygons are lists of a list of coordinates
+        ring_texts = []
+        for ring in in_shape_data["rings"]:
+            out_text = out_text + "("
+            coordinate_text = ",".join([" ".join([str(value) for value in coordinate]) for coordinate in ring])
+            ring_text = "({0})".format(coordinate_text)
+            ring_texts.append(ring_text)
+        out_text = "POLYGON ({0})".format("".join(ring_texts))
+        pass
+    elif "paths" in in_shape_data:
+        #Lines are a list of coordinates; Survey123 stores as if multiple segments are supported but only uses 1
+        path0 = in_shape_data["paths"][0]
+        coordinate_text = ",".join([" ".join([str(value) for value in coordinate]) for coordinate in path0])
+        out_text = "LINESTRING({0})".format(coordinate_text)
+        pass
+    else:
+        #Assume point
+        out_text = "POINT {0} {1}".format(str(in_shape_data["x"]), str(in_shape_data["y"]))
+        if "z" in in_shape_data:
+            out_text = out_text + str(in_shape_data["z"])
+    return out_text
 
 def read_data(indata, parentglobalid=""):
     # Dedicated function to read data.
