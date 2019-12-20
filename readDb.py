@@ -60,8 +60,11 @@ def read_data(indata, parentglobalid=""):
             #Test the key to see if it's a normal attribute, select_multiple (list), geometry (dict), repeat (list), or metadata (dict)
             if isinstance(fieldValue, dict):
                 # process geometry
-                if "spatialReference" in fieldValue.keys() and "type" in fieldValue.keys():
-                    if fieldValue["type"] == "point":
+                if "spatialReference" in fieldValue.keys():
+                    wkt = shape2WKT(fieldValue)
+                    outFeature["data"][fieldValue] = wkt
+                    # Additional helper for points - seperate x/y/z fields
+                    if "x" in fieldValue.keys():
                         outFeature["data"][u"x_geometry"] = fieldValue["x"]
                         outFeature["data"][u"y_geometry"] = fieldValue["y"]
                         if "z" in fieldValue.keys():
