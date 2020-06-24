@@ -1,2 +1,3 @@
 *.sqlite
 out
+.DS_Store
