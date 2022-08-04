@@ -79,8 +79,9 @@ def read_data(indata, parentglobalid=""):
                         repeat_record = read_data({"{0}_{1}".format(parentTable, fieldName): record}, identifier)
                         outData.extend(repeat_record)
                 else:
+                    if fieldValue[0] is not None:
                     #Select_multiple - other item types; change to comma seperated list
-                    outFeature["data"][fieldName] = ",".join(fieldValue)
+                        outFeature["data"][fieldName] = ",".join(fieldValue)
             else:
                 outFeature["data"][fieldName] = fieldValue
         outData.append(outFeature)
